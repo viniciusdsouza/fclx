@@ -7,4 +7,7 @@ migrateup:
 migratedown:
 	migrate -path=sql/migrations -database "mysql://root:root@tcp(localhost:3306)/chat_test" -verbose drop
 
-.PHONE: createmigration migrateup migratedown
+grpc:
+	protoc --go_out= . --go-grpc_out= . proto/chat.proto
+
+.PHONE: createmigration migrateup migratedown grpc

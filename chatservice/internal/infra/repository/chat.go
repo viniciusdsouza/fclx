@@ -32,7 +32,7 @@ func (r *ChatRepositoryMySQL) CreateChat(ctx context.Context, chat *entity.Chat)
 			Status:           chat.Status,
 			TokenUsage:       int32(chat.TokenUsage),
 			Model:            chat.Config.Model.Name,
-			ModelMaxTokens:   int32(chat.Config.MaxTokens),
+			ModelMaxTokens:   int32(chat.Config.Model.MaxTokens),
 			Temperature:      float64(chat.Config.Temperature),
 			TopP:             float64(chat.Config.TopP),
 			N:                int32(chat.Config.N),
@@ -56,10 +56,9 @@ func (r *ChatRepositoryMySQL) CreateChat(ctx context.Context, chat *entity.Chat)
 			Content:   chat.InitialSystemMessage.Content,
 			Role:      chat.InitialSystemMessage.Role,
 			Tokens:    int32(chat.InitialSystemMessage.Tokens),
-			CreatedAt: time.Now(),
+			CreatedAt: chat.InitialSystemMessage.CreatedAt,
 		},
 	)
-
 	if err != nil {
 		return err
 	}
@@ -67,13 +66,12 @@ func (r *ChatRepositoryMySQL) CreateChat(ctx context.Context, chat *entity.Chat)
 	return nil
 }
 
-func (r *ChatRepositoryMySQL) FindChatById(ctx context.Context, chatId string) (*entity.Chat, error) {
+func (r *ChatRepositoryMySQL) FindChatById(ctx context.Context, chatID string) (*entity.Chat, error) {
 	chat := &entity.Chat{}
-	res, err := r.Queries.FindChatById(ctx, chatId)
+	res, err := r.Queries.FindChatById(ctx, chatID)
 	if err != nil {
 		return nil, errors.New("chat not found")
 	}
-
 	chat.Id = res.ID
 	chat.UserId = res.UserID
 	chat.Status = res.Status
@@ -92,7 +90,7 @@ func (r *ChatRepositoryMySQL) FindChatById(ctx context.Context, chatId string) (
 		FrequencyPenalty: float32(res.FrequencyPenalty),
 	}
 
-	messages, err := r.Queries.FindMessagesByChatID(ctx, chatId)
+	messages, err := r.Queries.FindMessagesByChatID(ctx, chatID)
 	if err != nil {
 		return nil, err
 	}
@@ -108,11 +106,10 @@ func (r *ChatRepositoryMySQL) FindChatById(ctx context.Context, chatId string) (
 		})
 	}
 
-	erasedMessages, err := r.Queries.FindErasedMessagesByChatID(ctx, chatId)
+	erasedMessages, err := r.Queries.FindErasedMessagesByChatID(ctx, chatID)
 	if err != nil {
 		return nil, err
 	}
-
 	for _, message := range erasedMessages {
 		chat.ErasedMessages = append(chat.ErasedMessages, &entity.Message{
 			Id:        message.ID,

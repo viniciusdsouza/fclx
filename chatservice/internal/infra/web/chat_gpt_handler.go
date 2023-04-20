@@ -2,7 +2,7 @@ package web
 
 import (
 	"encoding/json"
-	"io"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/viniciusdsouza/fclx/chatservice/internal/usecase/chatcompletion"
@@ -14,16 +14,16 @@ type WebChatGPTHandler struct {
 	AuthToken         string
 }
 
-func NewWebChatGPTHandler(completionUseCase chatcompletion.ChatCompletionUseCase, config chatcompletion.ChatCompletionConfigInputDTO, authToken string) *WebChatGPTHandler {
+func NewWebChatGPTHandler(usecase chatcompletion.ChatCompletionUseCase, config chatcompletion.ChatCompletionConfigInputDTO, authToken string) *WebChatGPTHandler {
 	return &WebChatGPTHandler{
-		CompletionUseCase: completionUseCase,
+		CompletionUseCase: usecase,
 		Config:            config,
 		AuthToken:         authToken,
 	}
 }
 
 func (h *WebChatGPTHandler) Handle(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
@@ -33,14 +33,14 @@ func (h *WebChatGPTHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := io.ReadAll(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if !json.Valid(body) {
-		http.Error(w, "invalid json", http.StatusBadRequest)
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
@@ -50,7 +50,6 @@ func (h *WebChatGPTHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	dto.Config = h.Config
 
 	result, err := h.CompletionUseCase.Execute(r.Context(), dto)

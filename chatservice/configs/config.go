@@ -1,8 +1,6 @@
 package configs
 
-import (
-	"github.com/spf13/viper"
-)
+import "github.com/spf13/viper"
 
 type conf struct {
 	DBDriver           string   `mapstructure:"DB_DRIVER"`
@@ -27,7 +25,6 @@ type conf struct {
 
 func LoadConfig(path string) (*conf, error) {
 	var cfg *conf
-
 	viper.SetConfigName("app_config")
 	viper.SetConfigType("env")
 	viper.AddConfigPath(path)
@@ -41,6 +38,5 @@ func LoadConfig(path string) (*conf, error) {
 	if err != nil {
 		panic(err)
 	}
-
-	return &conf{}, nil
+	return cfg, nil
 }
